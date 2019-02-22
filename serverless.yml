@@ -1,0 +1,19 @@
+service: lambda-cron
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: ${opt:stage, 'dev'}
+  region: eu-west-1
+  #environment:
+    #JWT_SECRET: ${self:custom.secrets.JWT_SECRET}
+
+#custom:
+  #secrets: ${file(secrets.json)}
+
+functions:
+
+  bookClasses:
+    handler: handler.bookClasses
+    events:
+      - schedule: cron(0 0 ? * WED *)
