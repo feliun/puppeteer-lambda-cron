@@ -1,18 +1,23 @@
 const setup = require('./starter-kit/setup');
 
-exports.handler = async (event, context, callback) => {
-  // For keeping the browser launch
+exports.handler = async (event, context) => {
   context.callbackWaitsForEmptyEventLoop = false;
-  const browser = await setup.getBrowser();
+  let result;
+  let browser;
   try {
-    const result = await exports.run(browser);
-    callback(null, result);
-  } catch (e) {
-    callback(e);
+    console.log('Getting a browser instance...');
+    browser = await setup.getBrowser();
+    console.log('Got it!!');
+    result = await exports.run(browser);
+  } catch (err) {
+    console.log(err);
+    return err;
   }
+  return result;
 };
 
 exports.run = async (browser) => {
+  console.log('Getting a new page...');
   const page = await browser.newPage();
   console.log('Going to google.com....');
   await page.goto('https://www.google.com', {waitUntil: ['domcontentloaded', 'networkidle0']});

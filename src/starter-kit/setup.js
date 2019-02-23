@@ -9,6 +9,7 @@ exports.getBrowser = (() => {
   let browser;
   return async () => {
     if (typeof browser === 'undefined' || !await isBrowserAvailable(browser)) {
+      console.log('Setting up chrome...');
       await setupChrome();
       browser = await puppeteer.launch({
         headless: true,
@@ -18,6 +19,7 @@ exports.getBrowser = (() => {
       });
       debugLog(async () => `launch done: ${await browser.version()}`);
     }
+    console.log('Browser set up!');
     return browser;
   };
 })();
