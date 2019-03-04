@@ -62,3 +62,5 @@ typings/
 .serverless
 dist/
 package.zip
+
+*/config.js

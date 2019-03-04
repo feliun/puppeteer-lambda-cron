@@ -1,4 +1,7 @@
+const moment = require('moment');
 const setup = require('./starter-kit/setup');
+const bookings = require('./config');
+const ENOUGH_TIME = 1500;
 
 exports.handler = async (event, context) => {
   context.callbackWaitsForEmptyEventLoop = false;
@@ -16,47 +19,56 @@ exports.handler = async (event, context) => {
   return result;
 };
 
+
+const login = (page) => async (user, pwd) => {
+  console.log(`Attempting to log in ${user}....`);
+  const LOGIN_PAGE = 'https://alumnos.salsabachata.es/login';
+  const LOGIN_FORM = 'body > div.container > div > div > div > div.card-body > form'; // eslint-disable-line max-len
+  const USER_INPUT = `${LOGIN_FORM} > div:nth-child(2) > input`;
+  const PWD_INPUT = `${LOGIN_FORM} > div:nth-child(3) > input`;
+  const LOGIN_BTN = `${LOGIN_FORM} > button`;
+  await page.goto(LOGIN_PAGE,
+    {waitUntil: ['domcontentloaded', 'networkidle0']});
+  await page.type(USER_INPUT, user);
+  await page.type(PWD_INPUT, pwd);
+  await Promise.all([
+    page.click(LOGIN_BTN),
+    page.waitForNavigation({waitUntil: 'networkidle0'}),
+  ]);
+  console.log(`Logged in succeeded for ${user}!`);
+};
+
+const delay = (timeout) =>
+  new Promise((resolve) => setTimeout(resolve, timeout));
+
+const bookClass = (page) => async ({dance, level, centre, when, confirmButton}) => {
+  const nextDate = moment().day(when).format('YYYY-MM-DD');
+  const BOOKING_PAGE = `https://alumnos.salsabachata.es/extranet/realizar-reserva?centro=${centre}&tipo_curso=${dance}&nivel=${level}&dia=${nextDate}`;
+  const BOOKING_BUTTON = 'body > div.container.my-2.my-sm-3 > div.row.no-gutters.border > div.col-8.col-sm > a';
+  console.log(`Choosing dance ${dance} and level ${level}...`);
+  await page.goto(BOOKING_PAGE,
+    {waitUntil: ['domcontentloaded', 'networkidle0']});
+  await page.click(BOOKING_BUTTON);
+  await delay(ENOUGH_TIME);
+  console.log(`Confirming class dance ${dance} and level ${level}...`);
+  await page.click(confirmButton);
+  await delay(ENOUGH_TIME);
+};
+
 exports.run = async (browser) => {
   console.log('Getting a new page...');
   const page = await browser.newPage();
-  console.log('Going to google.com....');
-  await page.goto('https://www.google.com', {waitUntil: ['domcontentloaded', 'networkidle0']});
-  // console.log((await page.content()).slice(0, 500));
+  const runLogin = login(page);
+  const runBookClass = bookClass(page);
 
-  // await page.type('#lst-ib', 'aaaaa');
-  // avoid to timeout waitForNavigation() after click()
-  // await Promise.all([
-  //   // avoid to
-  //   // 'Cannot find context with specified id undefined' for localStorage
-  //   page.waitForNavigation(),
-  //   page.click('[name=btnK]'),
-  // ]);
+  for (let i=0; i<bookings.length; i++) {
+    const {user, pwd, classes} = bookings[i];
+    await runLogin(user, pwd);
+    for (let j=0; j<classes.length; j++) {
+      await runBookClass(classes[j]);
+    }
+  }
 
-/* screenshot
-  await page.screenshot({path: '/tmp/screenshot.png'});
-  const aws = require('aws-sdk');
-  const s3 = new aws.S3({apiVersion: '2006-03-01'});
-  const fs = require('fs');
-  const screenshot = await new Promise((resolve, reject) => {
-    fs.readFile('/tmp/screenshot.png', (err, data) => {
-      if (err) return reject(err);
-      resolve(data);
-    });
-  });
-  await s3.putObject({
-    Bucket: '<bucket name>',
-    Key: 'screenshot.png',
-    Body: screenshot,
-  }).promise();
-*/
-
-  // cookie and localStorage
-  // await page.setCookie({name: 'name', value: 'cookieValue'});
-  // console.log(await page.cookies());
-  // console.log(await page.evaluate(() => {
-  //   localStorage.setItem('name', 'localStorageValue');
-  //   return localStorage.getItem('name');
-  // }));
   await page.close();
-  return 'done';
+  return 'All booked!!';
 };
