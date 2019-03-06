@@ -45,14 +45,15 @@ const bookClass = (page) => async ({dance, level, centre, when, confirmButton}) 
   const nextDate = moment().day(when).format('YYYY-MM-DD');
   const BOOKING_PAGE = `https://alumnos.salsabachata.es/extranet/realizar-reserva?centro=${centre}&tipo_curso=${dance}&nivel=${level}&dia=${nextDate}`;
   const BOOKING_BUTTON = 'body > div.container.my-2.my-sm-3 > div.row.no-gutters.border > div.col-8.col-sm > a';
-  console.log(`Choosing dance ${dance} and level ${level}...`);
+  console.log(`Choosing dance ${dance} and level ${level} for ${nextDate}...`);
   await page.goto(BOOKING_PAGE,
     {waitUntil: ['domcontentloaded', 'networkidle0']});
   await page.click(BOOKING_BUTTON);
   await delay(ENOUGH_TIME);
-  console.log(`Confirming class dance ${dance} and level ${level}...`);
+  console.log(`Confirming class dance ${dance} and level ${level} for ${nextDate}...`);
   await page.click(confirmButton);
   await delay(ENOUGH_TIME);
+  console.log('Confirmed!');
 };
 
 exports.run = async (browser) => {
