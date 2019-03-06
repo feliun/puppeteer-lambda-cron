@@ -61,12 +61,16 @@ exports.run = async (browser) => {
   const runLogin = login(page);
   const runBookClass = bookClass(page);
 
-  for (let i=0; i<bookings.length; i++) {
-    const {user, pwd, classes} = bookings[i];
-    await runLogin(user, pwd);
-    for (let j=0; j<classes.length; j++) {
-      await runBookClass(classes[j]);
+  try {
+    for (let i=0; i<bookings.length; i++) {
+      const {user, pwd, classes} = bookings[i];
+      await runLogin(user, pwd);
+      for (let j=0; j<classes.length; j++) {
+        await runBookClass(classes[j]);
+      }
     }
+  } catch (e) {
+    console.error(e);
   }
 
   await page.close();
