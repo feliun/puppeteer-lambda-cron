@@ -13,7 +13,7 @@ functions:
   bookClasses:
     handler: index.handler
     events:
-      - schedule: cron(0 0 ? * WED *)
+      - schedule: cron(0 23 ? * TUE *) # 23:00 UTC of each Tuesday (00:00 CST)
 
 package:
   artifact: ./package.zip
