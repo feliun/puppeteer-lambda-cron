@@ -41,16 +41,17 @@ const login = (page) => async (user, pwd) => {
 const delay = (timeout) =>
   new Promise((resolve) => setTimeout(resolve, timeout));
 
-const bookClass = (page) => async ({dance, level, centre, when, confirmButton}) => {
-  const nextDate = moment().day(when).format('YYYY-MM-DD');
+const bookClass = (page) => async ({dance, level, centre, when, extractBookingButton, extractConfirmButton}) => {
+  const nextDate = moment().add(1, 'week').day(when).format('YYYY-MM-DD');
   const BOOKING_PAGE = `https://alumnos.salsabachata.es/extranet/realizar-reserva?centro=${centre}&tipo_curso=${dance}&nivel=${level}&dia=${nextDate}`;
-  const BOOKING_BUTTON = 'body > div.container.my-2.my-sm-3 > div.row.no-gutters.border > div.col-8.col-sm > a';
   console.log(`Choosing dance ${dance} and level ${level} for ${nextDate}...`);
   await page.goto(BOOKING_PAGE,
     {waitUntil: ['domcontentloaded', 'networkidle0']});
-  await page.click(BOOKING_BUTTON);
+  const bookingButton = await extractBookingButton(page);
+  await page.click(bookingButton);
   await delay(ENOUGH_TIME);
   console.log(`Confirming class dance ${dance} and level ${level} for ${nextDate}...`);
+  const confirmButton = await extractConfirmButton(page);
   await page.click(confirmButton);
   await delay(ENOUGH_TIME);
   console.log('Confirmed!');
